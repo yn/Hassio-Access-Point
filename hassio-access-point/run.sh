@@ -40,9 +40,9 @@ CLIENT_INTERNET_ACCESS=$(jq --raw-output ".client_internet_access" $CONFIG_PATH)
 CLIENT_DNS_OVERRIDE=$(jq --raw-output '.client_dns_override | join(" ")' $CONFIG_PATH)
 DNSMASQ_CONFIG_OVERRIDE=$(jq --raw-output '.dnsmasq_config_override | join(" ")' $CONFIG_PATH)
 
-# Set interface as wlan0 if not specified in config
+# Set interface as wlan1 if not specified in config
 if [ ${#INTERFACE} -eq 0 ]; then
-    INTERFACE="wlan0"
+    INTERFACE="wlan1"
 fi
 
 # Set debug as 0 if not specified in config
@@ -214,7 +214,7 @@ if [ $DHCP -eq 1 ]; then
     if [ $CLIENT_INTERNET_ACCESS -eq 1 ]; then
 
         ## Route traffic
-        iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+        iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
         iptables -P FORWARD ACCEPT
         iptables -F FORWARD
     fi
@@ -224,7 +224,7 @@ else
     ## No DHCP == No DNS. Must be set manually on client.
     ## Step 1: Routing
     if [ $CLIENT_INTERNET_ACCESS -eq 1 ]; then
-        iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+        iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
         iptables -P FORWARD ACCEPT
         iptables -F FORWARD
     fi
