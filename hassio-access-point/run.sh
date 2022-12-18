@@ -150,6 +150,10 @@ fi
 # Set address for the selected interface. Not sure why this is now not being set via /etc/network/interfaces, but maybe interfaces file is no longer required...
 ifconfig $INTERFACE $ADDRESS netmask $NETMASK broadcast $BROADCAST
 
+# The default WiFi on Raspberry Pi - the other, uplink, interface - can't do proxy_arp unless it's in promiscuous mode
+# Don't forget to enable proxy_arp in by running "sysctl net.ipv4.conf.wlan0.proxy_arp=1" in a host root console
+ifconfig wlan0 promisc
+
 # Add interface to hostapd.conf
 logger "Add to hostapd.conf: interface=$INTERFACE" 1
 echo "interface=$INTERFACE"$'\n' >> /hostapd.conf
