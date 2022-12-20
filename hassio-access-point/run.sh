@@ -25,7 +25,6 @@ WPA_PASSPHRASE=$(jq --raw-output ".wpa_passphrase" $CONFIG_PATH)
 CHANNEL=$(jq --raw-output ".channel" $CONFIG_PATH)
 ADDRESS=$(jq --raw-output ".address" $CONFIG_PATH)
 NETMASK=$(jq --raw-output ".netmask" $CONFIG_PATH)
-BROADCAST=$(jq --raw-output ".broadcast" $CONFIG_PATH)
 INTERFACE=$(jq --raw-output ".interface" $CONFIG_PATH)
 HIDE_SSID=$(jq --raw-output ".hide_ssid" $CONFIG_PATH)
 DHCP=$(jq --raw-output ".dhcp" $CONFIG_PATH)
@@ -39,6 +38,9 @@ HOSTAPD_CONFIG_OVERRIDE=$(jq --raw-output '.hostapd_config_override | join(" ")'
 CLIENT_INTERNET_ACCESS=$(jq --raw-output ".client_internet_access" $CONFIG_PATH)
 CLIENT_DNS_OVERRIDE=$(jq --raw-output '.client_dns_override | join(" ")' $CONFIG_PATH)
 DNSMASQ_CONFIG_OVERRIDE=$(jq --raw-output '.dnsmasq_config_override | join(" ")' $CONFIG_PATH)
+
+eval `ipcalc -b $ADDRESS $NETMASK`
+eval `ipcalc -n $ADDRESS $NETMASK`
 
 # Set interface as wlan1 if not specified in config
 if [ ${#INTERFACE} -eq 0 ]; then
@@ -149,6 +151,9 @@ fi
 
 # Set address for the selected interface. Not sure why this is now not being set via /etc/network/interfaces, but maybe interfaces file is no longer required...
 ifconfig $INTERFACE $ADDRESS netmask $NETMASK broadcast $BROADCAST
+
+# Add the routes
+route add -net $NETWORK netmask $NETMASK $INTERFACE
 
 # The default WiFi on Raspberry Pi - the other, uplink, interface - can't do proxy_arp unless it's in promiscuous mode
 # Don't forget to enable proxy_arp in by running "sysctl net.ipv4.conf.wlan0.proxy_arp=1" in a host root console
