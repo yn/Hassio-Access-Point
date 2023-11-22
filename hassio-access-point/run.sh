@@ -42,6 +42,9 @@ DNSMASQ_CONFIG_OVERRIDE=$(jq --raw-output '.dnsmasq_config_override | join(" ")'
 eval `ipcalc -b $ADDRESS $NETMASK`
 eval `ipcalc -n $ADDRESS $NETMASK`
 
+# Get the Default Route interface
+DEFAULT_ROUTE_INTERFACE=$(ip route show default | awk '/^default/ { print $5 }')
+
 # Set interface as wlan1 if not specified in config
 if [ ${#INTERFACE} -eq 0 ]; then
     INTERFACE="wlan1"
@@ -223,9 +226,9 @@ if [ $DHCP -eq 1 ]; then
     if [ $CLIENT_INTERNET_ACCESS -eq 1 ]; then
 
         ## Route traffic
-        iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
-        iptables -P FORWARD ACCEPT
-        iptables -F FORWARD
+        iptables-nft -t nat -A POSTROUTING -o $DEFAULT_ROUTE_INTERFACE -j MASQUERADE
+        iptables-nft -P FORWARD ACCEPT
+        iptables-nft -F FORWARD
     fi
 else
 	logger "# DHCP not enabled. Skipping dnsmasq" 1
@@ -233,9 +236,9 @@ else
     ## No DHCP == No DNS. Must be set manually on client.
     ## Step 1: Routing
     if [ $CLIENT_INTERNET_ACCESS -eq 1 ]; then
-        iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
-        iptables -P FORWARD ACCEPT
-        iptables -F FORWARD
+        iptables-nft -t nat -A POSTROUTING -o $DEFAULT_ROUTE_INTERFACE -j MASQUERADE
+        iptables-nft -P FORWARD ACCEPT
+        iptables-nft -F FORWARD
     fi
 fi
 
